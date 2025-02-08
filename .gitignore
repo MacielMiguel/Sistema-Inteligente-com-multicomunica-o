@@ -1,0 +1,5 @@
+.venv
+actuators/__pycache__
+client/__pycache__
+gateway/__pycache__
+sensors/__pycache__

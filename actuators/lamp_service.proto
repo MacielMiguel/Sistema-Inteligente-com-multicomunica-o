@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+service LampService {
+    rpc LigarLampada (Empty) returns (Empty);
+    rpc DesligarLampada (Empty) returns (Empty);
+}
+
+message Empty {}
