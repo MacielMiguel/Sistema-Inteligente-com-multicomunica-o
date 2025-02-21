@@ -18,8 +18,12 @@ class LampService(grpc_service.LampServiceServicer):
         self.estado = "desligada"
         print("[Atuador] Lâmpada desligada.")
         return Empty()
+    
+    def MudarCorLampada(self, request, context):
+        print(f"[Atuador] Mudando a cor da lâmpada para {request.cor}.")
+        return Empty()
 
-def serve():
+def server():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     grpc_service.add_LampServiceServicer_to_server(LampService(), server)
     
@@ -29,4 +33,4 @@ def serve():
     server.wait_for_termination()
 
 if __name__ == "__main__":
-    serve()
+    server()

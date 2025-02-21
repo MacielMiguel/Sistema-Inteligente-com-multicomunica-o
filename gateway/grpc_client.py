@@ -1,6 +1,7 @@
 import grpc
 from actuators import lamp_service_pb2
 from actuators import lamp_service_pb2_grpc
+from actuators import AC_service_pb2
 
 class LampClient:
     def __init__(self, host="localhost", port=50051):

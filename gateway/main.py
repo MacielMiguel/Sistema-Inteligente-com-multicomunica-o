@@ -11,4 +11,4 @@ if __name__ == "__main__":
     broker_thread = threading.Thread(target=start_broker_listener)
     broker_thread.start()
 
-    print("🚀 Gateway iniciado!")
+    print("Gateway iniciado!")

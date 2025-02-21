@@ -14,7 +14,11 @@ def read_luminosity():
 
 while True:
     luminosity = read_luminosity()
-    message = {"sensor": "luminosity_sensor", "luminosity": luminosity}
+    message = {
+        "device_id": "luminosity_sensor1",
+        "type": "luminosity",
+        "status": "on"
+        }
     
     # Publicar no broker
     producer.send(TOPIC, json.dumps(message).encode("utf-8"))
