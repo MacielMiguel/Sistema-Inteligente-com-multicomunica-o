@@ -35,6 +35,15 @@ def callback(message):
         except TypeError as e:
             print(f"Erro ao codificar dados para JSON: {e}")
     
+def start_consumer_AC():
+    consumer_AC = KafkaConsumer(
+        "temperature_data",
+        bootstrap_servers=["localhost:9092"],
+        auto_offset_reset="latest"
+    )
+    for message in consumer_AC:
+        if message.topic == "temperature_data":
+            callback(message)
 
 def start_consumer_gates():
     consumer_gates = KafkaConsumer(
@@ -58,6 +67,10 @@ def start_consumer_luminosity():
 
 def start_broker_listener():
     print("Consumidor iniciado! Aguardando mensagens...")
+
+    # Therad para consumir mensagens dos portões
+    AC_thread = threading.Thread(target=start_consumer_AC)
+    AC_thread.start()
 
     # Therad para consumir mensagens dos portões
     gates_thread = threading.Thread(target=start_consumer_gates)

@@ -1,4 +1,9 @@
 flask
 grpcio
 grpcio-tools
-kafka-python
+kafka-python-ng
+protobuf
+requests
+json
+threading
+redis

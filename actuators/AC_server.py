@@ -1,9 +1,16 @@
 import grpc
 from concurrent import futures
 import time
-
+from kafka import KafkaProducer
 import AC_service_pb2
 import AC_service_pb2_grpc
+import json
+
+# Configuração do tópico de comandos
+COMMAND_TOPIC = "temperature_commands"
+BROKER_URL = "localhost:9092"
+producer = KafkaProducer(bootstrap_servers=BROKER_URL,
+                         value_serializer=lambda x: json.dumps(x).encode('utf-8'))
 
 # Implementação do serviço
 class ACService(AC_service_pb2_grpc.AirConditionerServiceServicer):
@@ -16,6 +23,13 @@ class ACService(AC_service_pb2_grpc.AirConditionerServiceServicer):
     def SetControl(self, request, context):
         # Atualiza o status do ar-condicionado
         self.status = request
+
+        # Publica o comando no tópico
+        if request.temperature is not None:
+            command = {"action": "set_temperature", "temperature": request.temperature}
+            producer.send(COMMAND_TOPIC, command)
+            print(f"[AC Server] Sent command: {command}")
+
         return AC_service_pb2.Response(message="✅ Controle atualizado com sucesso!")
 
     def GetStatus(self, request, context):
