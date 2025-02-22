@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import lamp_service_pb2 as actuators_dot_lamp__service__pb2
+from actuators import lamp_service_pb2 as actuators_dot_lamp__service__pb2
 
 GRPC_GENERATED_VERSION = '1.70.0'
 GRPC_VERSION = grpc.__version__

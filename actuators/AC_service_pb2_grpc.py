@@ -3,7 +3,8 @@
 import grpc
 import warnings
 
-import AC_service_pb2 as AC__service__pb2
+from actuators import AC_service_pb2 as AC__service__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 GRPC_GENERATED_VERSION = '1.70.0'
 GRPC_VERSION = grpc.__version__
@@ -26,8 +27,7 @@ if _version_not_supported:
 
 
 class AirConditionerServiceStub(object):
-    """Serviço gRPC
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
         """Constructor.
@@ -42,14 +42,13 @@ class AirConditionerServiceStub(object):
                 _registered_method=True)
         self.GetStatus = channel.unary_unary(
                 '/airconditioner.AirConditionerService/GetStatus',
-                request_serializer=AC__service__pb2.AirConditionerControl.SerializeToString,
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
                 response_deserializer=AC__service__pb2.AirConditionerControl.FromString,
                 _registered_method=True)
 
 
 class AirConditionerServiceServicer(object):
-    """Serviço gRPC
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def SetControl(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -58,7 +57,8 @@ class AirConditionerServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetStatus(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Corrigido
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -73,7 +73,7 @@ def add_AirConditionerServiceServicer_to_server(servicer, server):
             ),
             'GetStatus': grpc.unary_unary_rpc_method_handler(
                     servicer.GetStatus,
-                    request_deserializer=AC__service__pb2.AirConditionerControl.FromString,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                     response_serializer=AC__service__pb2.AirConditionerControl.SerializeToString,
             ),
     }
@@ -85,8 +85,7 @@ def add_AirConditionerServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class AirConditionerService(object):
-    """Serviço gRPC
-    """
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def SetControl(request,
@@ -130,7 +129,7 @@ class AirConditionerService(object):
             request,
             target,
             '/airconditioner.AirConditionerService/GetStatus',
-            AC__service__pb2.AirConditionerControl.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             AC__service__pb2.AirConditionerControl.FromString,
             options,
             channel_credentials,

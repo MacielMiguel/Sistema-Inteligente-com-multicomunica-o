@@ -2,26 +2,26 @@ syntax = "proto3";
 
 package airconditioner;
 
+import "google/protobuf/empty.proto"; // Adicionando suporte a Empty
+
 // Mensagem para controle do Ar Condicionado
 message AirConditionerControl {
-  string device_id = 1;        // ID único do dispositivo
-  bool power = 2;              // true = ligado, false = desligado
-  int32 temperature = 3;       // Temperatura desejada (°C)
-  Mode mode = 4;               // Modo de operação
-  FanSpeed fan_speed = 5;      // Velocidade do ventilador
-  bool swing = 6;              // true = balanço ativado, false = desativado
+  string device_id = 1;
+  bool power = 2;
+  int32 temperature = 3;
+  Mode mode = 4;
+  FanSpeed fan_speed = 5;
+  bool swing = 6;
 }
 
-// Modos de operação
 enum Mode {
-  COOL = 0;    // Resfriar
-  HEAT = 1;    // Aquecer
-  FAN = 2;     // Ventilar
-  DRY = 3;     // Desumidificar
-  AUTO = 4;    // Automático
+  COOL = 0;
+  HEAT = 1;
+  FAN = 2;
+  DRY = 3;
+  AUTO = 4;
 }
 
-// Velocidades
 enum FanSpeed {
   LOW = 0;
   MEDIUM = 1;
@@ -29,13 +29,11 @@ enum FanSpeed {
   AUTOMATIC = 3;
 }
 
-// Resposta simples
 message Response {
   string message = 1;
 }
 
-// Serviço gRPC
 service AirConditionerService {
   rpc SetControl (AirConditionerControl) returns (Response);
-  rpc GetStatus (AirConditionerControl) returns (AirConditionerControl);
+  rpc GetStatus (google.protobuf.Empty) returns (AirConditionerControl); // Corrigido
 }

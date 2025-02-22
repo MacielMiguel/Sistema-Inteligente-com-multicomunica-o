@@ -22,23 +22,24 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10\x41\x43_service.proto\x12\x0e\x61irconditioner\"\xae\x01\n\x15\x41irConditionerControl\x12\x11\n\tdevice_id\x18\x01 \x01(\t\x12\r\n\x05power\x18\x02 \x01(\x08\x12\x13\n\x0btemperature\x18\x03 \x01(\x05\x12\"\n\x04mode\x18\x04 \x01(\x0e\x32\x14.airconditioner.Mode\x12+\n\tfan_speed\x18\x05 \x01(\x0e\x32\x18.airconditioner.FanSpeed\x12\r\n\x05swing\x18\x06 \x01(\x08\"\x1b\n\x08Response\x12\x0f\n\x07message\x18\x01 \x01(\t*6\n\x04Mode\x12\x08\n\x04\x43OOL\x10\x00\x12\x08\n\x04HEAT\x10\x01\x12\x07\n\x03\x46\x41N\x10\x02\x12\x07\n\x03\x44RY\x10\x03\x12\x08\n\x04\x41UTO\x10\x04*8\n\x08\x46\x61nSpeed\x12\x07\n\x03LOW\x10\x00\x12\n\n\x06MEDIUM\x10\x01\x12\x08\n\x04HIGH\x10\x02\x12\r\n\tAUTOMATIC\x10\x03\x32\xc1\x01\n\x15\x41irConditionerService\x12M\n\nSetControl\x12%.airconditioner.AirConditionerControl\x1a\x18.airconditioner.Response\x12Y\n\tGetStatus\x12%.airconditioner.AirConditionerControl\x1a%.airconditioner.AirConditionerControlb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10\x41\x43_service.proto\x12\x0e\x61irconditioner\x1a\x1bgoogle/protobuf/empty.proto\"\xae\x01\n\x15\x41irConditionerControl\x12\x11\n\tdevice_id\x18\x01 \x01(\t\x12\r\n\x05power\x18\x02 \x01(\x08\x12\x13\n\x0btemperature\x18\x03 \x01(\x05\x12\"\n\x04mode\x18\x04 \x01(\x0e\x32\x14.airconditioner.Mode\x12+\n\tfan_speed\x18\x05 \x01(\x0e\x32\x18.airconditioner.FanSpeed\x12\r\n\x05swing\x18\x06 \x01(\x08\"\x1b\n\x08Response\x12\x0f\n\x07message\x18\x01 \x01(\t*6\n\x04Mode\x12\x08\n\x04\x43OOL\x10\x00\x12\x08\n\x04HEAT\x10\x01\x12\x07\n\x03\x46\x41N\x10\x02\x12\x07\n\x03\x44RY\x10\x03\x12\x08\n\x04\x41UTO\x10\x04*8\n\x08\x46\x61nSpeed\x12\x07\n\x03LOW\x10\x00\x12\n\n\x06MEDIUM\x10\x01\x12\x08\n\x04HIGH\x10\x02\x12\r\n\tAUTOMATIC\x10\x03\x32\xb2\x01\n\x15\x41irConditionerService\x12M\n\nSetControl\x12%.airconditioner.AirConditionerControl\x1a\x18.airconditioner.Response\x12J\n\tGetStatus\x12\x16.google.protobuf.Empty\x1a%.airconditioner.AirConditionerControlb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'AC_service_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_MODE']._serialized_start=242
-  _globals['_MODE']._serialized_end=296
-  _globals['_FANSPEED']._serialized_start=298
-  _globals['_FANSPEED']._serialized_end=354
-  _globals['_AIRCONDITIONERCONTROL']._serialized_start=37
-  _globals['_AIRCONDITIONERCONTROL']._serialized_end=211
-  _globals['_RESPONSE']._serialized_start=213
-  _globals['_RESPONSE']._serialized_end=240
-  _globals['_AIRCONDITIONERSERVICE']._serialized_start=357
-  _globals['_AIRCONDITIONERSERVICE']._serialized_end=550
+  _globals['_MODE']._serialized_start=271
+  _globals['_MODE']._serialized_end=325
+  _globals['_FANSPEED']._serialized_start=327
+  _globals['_FANSPEED']._serialized_end=383
+  _globals['_AIRCONDITIONERCONTROL']._serialized_start=66
+  _globals['_AIRCONDITIONERCONTROL']._serialized_end=240
+  _globals['_RESPONSE']._serialized_start=242
+  _globals['_RESPONSE']._serialized_end=269
+  _globals['_AIRCONDITIONERSERVICE']._serialized_start=386
+  _globals['_AIRCONDITIONERSERVICE']._serialized_end=564
 # @@protoc_insertion_point(module_scope)

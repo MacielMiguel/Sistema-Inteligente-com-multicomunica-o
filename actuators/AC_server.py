@@ -39,9 +39,9 @@ class ACService(AC_service_pb2_grpc.AirConditionerServiceServicer):
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     AC_service_pb2_grpc.add_AirConditionerServiceServicer_to_server(ACService(), server)
-    server.add_insecure_port("[::]:50051")
+    server.add_insecure_port("[::]:50052")
     server.start()
-    print("Servidor gRPC rodando na porta 50051...")
+    print("Servidor gRPC rodando na porta 50052...")
     try:
         while True:
             time.sleep(86400)  # Mantém o servidor rodando
