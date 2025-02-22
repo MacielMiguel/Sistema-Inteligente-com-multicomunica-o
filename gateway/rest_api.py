@@ -10,12 +10,14 @@ redis_port = 6379
 redis_db = 0
 r = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
 
+# Método para listar dispositivos
 @app.route("/devices", methods=["GET"])
 def list_devices():
     devices = r.hgetall("devices")
     devices = {k.decode(): json.loads(v.decode()) for k, v in devices.items()}
     return jsonify(devices)
 
+# Método para lista estado de um dispositivo
 @app.route("/devices/<device>/status", methods=["GET"])
 def get_status(device):
     device_data = r.hget("devices", device)
@@ -23,6 +25,7 @@ def get_status(device):
         return jsonify({device: json.loads(device_data.decode())})
     return jsonify({"error": "Dispositivo não encontrado"}), 404
 
+# Método para togglar um dispositivo
 @app.route("/devices/<device>/toggle", methods=["POST"])
 def toggle_device(device):
     device_data = r.hget("devices", device)
@@ -33,6 +36,7 @@ def toggle_device(device):
         return jsonify({device: device_data["status"]})
     return jsonify({"error": "Dispositivo não encontrado"}), 404
 
+# Método para deletar um dispositivo
 @app.route("/devices/<device>", methods=["DELETE"])
 def delete_device(device):
     if r.hdel("devices", device):
