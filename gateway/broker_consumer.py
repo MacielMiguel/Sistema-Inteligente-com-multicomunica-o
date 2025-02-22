@@ -7,75 +7,59 @@ import json
 redis_host = 'localhost'
 redis_port = 6379
 redis_db = 0
-r = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
+try:
+    r = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
+except redis.exceptions.ConnectionError as e:
+    print(f"Erro ao conectar ao Redis: {e}")
 
-def callback(message):
-    print(f"📥 Mensagem recebida do sensor: {message.value.decode()}")
-    data = json.loads(message.value.decode())
-    device_id = data.get("device_id")
-    status = data.get("status")
-    
-    # Verifica se o dispositivo já existe no Redis
-    existe = r.hexists("devices", device_id)  # True ou False
+# Função para processar mensagens e criar os dispositivos no Redis
+def process_message(message, topic):
+    try:
+        print(f"Mensagem recebida do tópico {topic}: {message.value.decode()}")
+        data = json.loads(message.value.decode())
+        device_id = data.get("device_id")
+        status = data.get("status")
+        device_type = data.get("type")
+        temperature = data.get("temperature") if device_type == "AC" else None
 
-    if not existe:
-        try:
-            # Armazena o dispositivo no Redis
-            r.hset("devices", device_id, json.dumps({"status": status}))
-        except (redis.exceptions.ConnectionError, redis.exceptions.ResponseError) as e:
-            print(f"Erro ao adicionar dispositivo ao Redis: {e}")
-        except TypeError as e:
-            print(f"Erro ao codificar dados para JSON: {e}")
-    elif existe and status != r.hget("devices", device_id).decode():
-        try:
-            # Atualiza o status do dispositivo no Redis
-            r.hset("devices", device_id, json.dumps({"status": status}))
-        except (redis.exceptions.ConnectionError, redis.exceptions.ResponseError) as e:
-            print(f"Erro ao atualizar dispositivo no Redis: {e}")
-        except TypeError as e:
-            print(f"Erro ao codificar dados para JSON: {e}")
-    
-def start_consumer_AC():
-    consumer_AC = KafkaConsumer(
-        "temperature_data",
-        bootstrap_servers=["localhost:9092"],
-        auto_offset_reset="latest"
-    )
-    for message in consumer_AC:
-        if message.topic == "temperature_data":
-            callback(message)
+        device_data = {"status": status, "type": device_type}
+        if temperature:
+            device_data["temperature"] = temperature
 
-def start_consumer_gates():
-    consumer_gates = KafkaConsumer(
-        "gates_data",
-        bootstrap_servers=["localhost:9092"],
-        auto_offset_reset="latest"
-    )
-    for message in consumer_gates:
-        if message.topic == "gates_data":
-            callback(message)
+        r.hset("devices", device_id, json.dumps(device_data))
+    except json.JSONDecodeError as e:
+        print(f"Erro ao decodificar JSON da mensagem: {e}")
+    except Exception as e:
+        print(f"Erro ao processar mensagem do tópico {topic}: {e}")
 
-def start_consumer_luminosity():
-    consumer_luminosity = KafkaConsumer(
-        "luminosity_data",
-        bootstrap_servers=["localhost:9092"],
-        auto_offset_reset="latest"
-    )
-    for message in consumer_luminosity:
-        if message.topic == "luminosity_data":
-            callback(message)
+# Função para consumir as mensagens dos tópicos Kafka
+def consume_messages(topic):
+    """Consome mensagens de um tópico Kafka."""
+    try:
+        consumer = KafkaConsumer(
+            topic,
+            bootstrap_servers=["localhost:9092"],
+            auto_offset_reset="latest"
+        )
+        for message in consumer:
+            process_message(message, topic)
+    except Exception as e:
+        print(f"Erro ao consumir mensagens do tópico {topic}: {e}")
 
 def start_broker_listener():
     print("Consumidor iniciado! Aguardando mensagens...")
 
-    # Therad para consumir mensagens dos portões
-    AC_thread = threading.Thread(target=start_consumer_AC)
-    AC_thread.start()
+    topics = {
+        "temperature_data": consume_messages,
+        "gates_data": consume_messages,
+        "luminosity_data": consume_messages
+    }
 
-    # Therad para consumir mensagens dos portões
-    gates_thread = threading.Thread(target=start_consumer_gates)
-    gates_thread.start()
-    
-    # Thread para consumir mensagens das lâmpadas
-    luminosity_thread = threading.Thread(target=start_consumer_luminosity)
-    luminosity_thread.start()
+    threads = []
+    for topic, func in topics.items():
+        thread = threading.Thread(target=func, args=(topic,))
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()

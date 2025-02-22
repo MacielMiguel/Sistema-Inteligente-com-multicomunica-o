@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 import redis
 import json
+import grpc_client as grpc
 
 app = Flask(__name__)
 
@@ -8,39 +9,99 @@ app = Flask(__name__)
 redis_host = 'localhost'
 redis_port = 6379
 redis_db = 0
-r = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
+try:
+    r = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
+except redis.exceptions.ConnectionError as e:
+    print(f"Erro ao conectar ao Redis: {e}")
+
+# Método para retornar os dados de um dispositivo
+def get_device_data(device):
+    try:
+        device_data = r.hget("devices", device)
+        if device_data:
+            return json.loads(device_data.decode())
+        return None
+    except Exception as e:
+        print(f"Erro ao obter dados do dispositivo {device}: {e}")
+        return None
 
 # Método para listar dispositivos
 @app.route("/devices", methods=["GET"])
 def list_devices():
-    devices = r.hgetall("devices")
-    devices = {k.decode(): json.loads(v.decode()) for k, v in devices.items()}
-    return jsonify(devices)
+    try:
+        devices = r.hgetall("devices")
+        devices = {k.decode(): json.loads(v.decode()) for k, v in devices.items()}
+        return jsonify(devices)
+    except Exception as e:
+        print(f"Erro ao listar dispositivos: {e}")
+        return jsonify({"error": "Erro ao listar dispositivos"}), 500
+    
+# Método para listar um dispositivo somente
+@app.route("/devices/<device>", methods=["GET"])
+def get_device_info(device):
+    device_data = get_device_data(device)
+    if device_data:
+        return jsonify({device: device_data})
+    return jsonify({"error": "Dispositivo não encontrado"}), 404
 
 # Método para lista estado de um dispositivo
 @app.route("/devices/<device>/status", methods=["GET"])
 def get_status(device):
-    device_data = r.hget("devices", device)
+    device_data = get_device_data(device)
     if device_data:
-        return jsonify({device: json.loads(device_data.decode())})
+        return jsonify({device: device_data.get("status")})
     return jsonify({"error": "Dispositivo não encontrado"}), 404
 
 # Método para togglar um dispositivo
 @app.route("/devices/<device>/toggle", methods=["POST"])
 def toggle_device(device):
-    device_data = r.hget("devices", device)
-    if device_data:
-        device_data = json.loads(device_data.decode())
-        device_data["status"] = "on" if device_data["status"] == "off" else "off"
-        r.hset("devices", device, json.dumps(device_data))
-        return jsonify({device: device_data["status"]})
+    device_data = get_device_data(device)
+    try:
+        if device_data:
+            # Tratamento no gRPC
+            if device_data["type"] == "luminosity":
+                lamp_client = grpc.LampClient()
+                if device_data["status"] == "off":
+                    lamp_client.ligar_lampada()
+                else:
+                    lamp_client.desligar_lampada()
+            elif device_data["type"] == "AC":
+                ac_client = grpc.ACClient()
+                ac_client.set_control(power=device_data["status"] == "off")
+
+            # Tratamento no redis
+            device_data["status"] = "on" if device_data["status"] == "off" else "off"
+            r.hset("devices", device, json.dumps(device_data))
+            return jsonify({device: device_data["status"]})
+    except Exception as e:
+        print(f"Erro ao togglear dispositivo {device}: {e}")
     return jsonify({"error": "Dispositivo não encontrado"}), 404
 
 # Método para deletar um dispositivo
 @app.route("/devices/<device>", methods=["DELETE"])
 def delete_device(device):
-    if r.hdel("devices", device):
-        return jsonify({"message": f"Dispositivo {device} deletado com sucesso"})
+    try:
+        if r.hdel("devices", device):
+            return jsonify({"message": f"Dispositivo {device} deletado com sucesso"})
+        return jsonify({"error": "Dispositivo não encontrado"}), 404
+    except Exception as e:
+        print(f"Erro ao deletar dispositivo {device}: {e}")
+        return jsonify({"error": "Erro ao deletar dispositivo"}), 500
+
+# Método para editar um dispositivo
+@app.route("/devices/<device>", methods=["PUT"])
+def edit_device(device):
+    device_data = r.hget("devices", device)
+    if device_data:
+        device_data = json.loads(device_data.decode())
+        try:
+            new_data = request.get_json()
+            # Valide os dados recebidos (ex: verifique se os campos obrigatórios estão presentes)
+            device_data.update(new_data) # Atualiza as informações do dispositivo com os dados recebidos
+            r.hset("devices", device, json.dumps(device_data))
+            return jsonify({"message": f"Dispositivo {device} atualizado com sucesso"})
+        except (ValueError, TypeError) as e:
+            return jsonify({"error": f"Erro ao atualizar dispositivo: {e}"}), 400 # Retorna erro se os dados forem inválidos
     return jsonify({"error": "Dispositivo não encontrado"}), 404
 
 def start_rest_server():
