@@ -67,7 +67,12 @@ def toggle_device(device):
                     lamp_client.desligar_lampada()
             elif device_data["type"] == "AC":
                 ac_client = grpc.ACClient()
-                ac_client.set_control(power=device_data["status"] == "off")
+                # Mantém informações do dispositivo
+                temperature = int(device_data.get("temperature"))
+                mode = device_data.get("mode")
+                fan_speed = device_data.get("fan_speed")
+                swing = (device_data.get("swing") == "True")
+                ac_client.set_control(power=device_data["status"] == "off", temperature=temperature, mode=mode, fan_speed=fan_speed, swing=swing)
 
             # Tratamento no redis
             device_data["status"] = "on" if device_data["status"] == "off" else "off"

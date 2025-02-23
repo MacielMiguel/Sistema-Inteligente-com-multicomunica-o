@@ -29,6 +29,10 @@ class ACService(AC_service_pb2_grpc.AirConditionerServiceServicer):
             command = {"action": "set_temperature", "temperature": request.temperature}
             producer.send(COMMAND_TOPIC, command)
             print(f"[AC Server] Sent command: {command}")
+        if request.power is not None:
+            command = {"action": "set_power", "power": request.power}
+            producer.send(COMMAND_TOPIC, command)
+            print(f"[AC Server] Sent command: {command}")
 
         return AC_service_pb2.Response(message="✅ Controle atualizado com sucesso!")
 

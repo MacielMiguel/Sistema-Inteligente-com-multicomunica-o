@@ -11,6 +11,7 @@ BROKER_URL = "localhost:9092"
 consumer =  KafkaConsumer(COMMAND_TOPIC, bootstrap_servers=BROKER_URL,
                          value_deserializer=lambda x: json.loads(x.decode('utf-8')))
 temperature = None
+power = True
 
 # Conectar ao broker Kafka
 producer = get_broker_connection()
@@ -27,12 +28,18 @@ def read_temperature():
     return round(temp, 2)
 
 def receive_commands():
-    global temperature
+    global temperature, power
     for message in consumer:
         command = message.value
         if command.get("action") == "set_temperature":
             temperature = command.get("temperature")
             print(f"[Temperature Sensor] Received command: {command}")
+        if command.get("action") == "set_power":
+            power = command.get("power")
+            if power:
+                print("[Temperature Sensor] Received command: Power ON")
+            else:
+                print("[Temperature Sensor] Received command: Power OFF")
 
 command_thread = threading.Thread(target=receive_commands)
 command_thread.daemon = True
@@ -44,8 +51,19 @@ while True:
         "device_id": "AC_sensor1",
         "type": "AC",
         "status": "on",
-        "temperature": temp
-        } 
+        "temperature": temp,
+        "mode": "COOL",
+        "fan_speed": "MEDIUM",
+        "swing": "False"
+        } if power else {
+        "device_id": "AC_sensor1",
+        "type": "AC",
+        "status": "off",
+        "temperature": temp,
+        "mode": "COOL",
+        "fan_speed": "MEDIUM",
+        "swing": "False"
+        }
     
     # Publicar no broker Kafka
     producer.send(TOPIC, json.dumps(message).encode("utf-8"))

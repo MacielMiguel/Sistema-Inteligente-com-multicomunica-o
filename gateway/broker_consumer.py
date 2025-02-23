@@ -20,11 +20,13 @@ def process_message(message, topic):
         device_id = data.get("device_id")
         status = data.get("status")
         device_type = data.get("type")
-        temperature = data.get("temperature") if device_type == "AC" else None
 
         device_data = {"status": status, "type": device_type}
-        if temperature:
-            device_data["temperature"] = temperature
+        if device_type == "AC":
+            device_data["temperature"] = data.get("temperature")
+            device_data["mode"] = data.get("mode")
+            device_data["fan_speed"] = data.get("fan_speed")
+            device_data["swing"] = data.get("swing")
 
         r.hset("devices", device_id, json.dumps(device_data))
     except json.JSONDecodeError as e:
@@ -34,7 +36,6 @@ def process_message(message, topic):
 
 # Função para consumir as mensagens dos tópicos Kafka
 def consume_messages(topic):
-    """Consome mensagens de um tópico Kafka."""
     try:
         consumer = KafkaConsumer(
             topic,
