@@ -73,7 +73,7 @@ def toggle_device(device):
                 fan_speed = device_data.get("fan_speed")
                 swing = (device_data.get("swing") == "True")
                 # Troca a informação de status dele
-                ac_client.set_control(power=device_data["status"] == "off", temperature=temperature, mode=mode, fan_speed=fan_speed, swing=swing)
+                ac_client.set_control(device_id=device, power=device_data["status"] == "off", temperature=temperature, mode=mode, fan_speed=fan_speed, swing=swing)
 
             # Tratamento no redis
             device_data["status"] = "on" if device_data["status"] == "off" else "off"
@@ -87,7 +87,15 @@ def toggle_device(device):
 @app.route("/devices/<device>", methods=["DELETE"])
 def delete_device(device):
     try:
-        if r.hdel("devices", device):
+        device_data = get_device_data(device)
+        if device_data:
+            if device_data["type"] == "luminosity":
+                lamp_client = grpc.LampClient()
+                lamp_client.desligar_lampada()
+            elif device_data["type"] == "AC":
+                ac_client = grpc.ACClient()
+                ac_client.set_control(device_id=device, power=False, temperature=int(device_data.get("temperature")), mode=device_data.get("mode"), fan_speed=device_data.get("fan_speed"), swing=device_data.get("swing") == "True")
+            r.hdel("devices", device)
             return jsonify({"message": f"Dispositivo {device} deletado com sucesso"})
         return jsonify({"error": "Dispositivo não encontrado"}), 404
     except Exception as e:
@@ -109,7 +117,7 @@ def edit_device(device):
 
             if device_data["type"] == "AC":
                 ac_client = grpc.ACClient()
-                ac_client.set_control(power=device_data["status"] == "on", temperature=device_data["temperature"], mode=device_data["mode"], fan_speed=device_data["fan_speed"], swing=device_data["swing"] == "True")
+                ac_client.set_control(device_id=device, power=device_data["status"] == "on", temperature=device_data["temperature"], mode=device_data["mode"], fan_speed=device_data["fan_speed"], swing=device_data["swing"] == "True")
             return jsonify({"message": f"Dispositivo {device} atualizado com sucesso"})
         except (ValueError, TypeError) as e:
             return jsonify({"error": f"Erro ao atualizar dispositivo: {e}"}), 400 # Retorna erro se os dados forem inválidos

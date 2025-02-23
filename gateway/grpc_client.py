@@ -25,9 +25,9 @@ class ACClient:
         self.channel = grpc.insecure_channel(f"{host}:{port}")
         self.stub = AC_service_pb2_grpc.AirConditionerServiceStub(self.channel)
 
-    def set_control(self, power=True, temperature=22, mode="COOL", fan_speed="MEDIUM", swing=False):
+    def set_control(self, device_id="AC", power=True, temperature=22, mode="COOL", fan_speed="MEDIUM", swing=False):
         control = AC_service_pb2.AirConditionerControl(
-            device_id="AC12345",
+            device_id=device_id,
             power=power,
             temperature=temperature,
             mode=getattr(AC_service_pb2, mode),
@@ -41,22 +41,3 @@ class ACClient:
         request = Empty()  # Criando uma requisição vazia
         ac_status = self.stub.GetStatus(request)  # Chamando o método GetStatus
         print(ac_status)
-
-if __name__ == "__main__":
-    lamp_client = LampClient()
-    ac_client = ACClient()
-
-    # Testando a lâmpada
-    print("Ligando a lâmpada...")
-    lamp_client.ligar_lampada()
-    print("Desligando a lâmpada...")
-    lamp_client.desligar_lampada()
-
-    # Testando o ar-condicionado
-    print("Ligando o AC no modo COOL...")
-    ac_response = ac_client.set_control(power=True, temperature=22, mode="COOL", fan_speed="MEDIUM")
-    print("Resposta do AC:", ac_response.message)
-
-    print("Obtendo status do AC...")
-    ac_status = ac_client.get_status()
-    print("Status do AC:", ac_status)
