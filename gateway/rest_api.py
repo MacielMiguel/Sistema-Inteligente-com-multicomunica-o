@@ -72,6 +72,7 @@ def toggle_device(device):
                 mode = device_data.get("mode")
                 fan_speed = device_data.get("fan_speed")
                 swing = (device_data.get("swing") == "True")
+                # Troca a informação de status dele
                 ac_client.set_control(power=device_data["status"] == "off", temperature=temperature, mode=mode, fan_speed=fan_speed, swing=swing)
 
             # Tratamento no redis
@@ -101,9 +102,14 @@ def edit_device(device):
         device_data = json.loads(device_data.decode())
         try:
             new_data = request.get_json()
-            # Valide os dados recebidos (ex: verifique se os campos obrigatórios estão presentes)
-            device_data.update(new_data) # Atualiza as informações do dispositivo com os dados recebidos
+
+            # Atualiza as informações do dispositivo com os dados recebidos
+            device_data.update(new_data)
             r.hset("devices", device, json.dumps(device_data))
+
+            if device_data["type"] == "AC":
+                ac_client = grpc.ACClient()
+                ac_client.set_control(power=device_data["status"] == "on", temperature=device_data["temperature"], mode=device_data["mode"], fan_speed=device_data["fan_speed"], swing=device_data["swing"] == "True")
             return jsonify({"message": f"Dispositivo {device} atualizado com sucesso"})
         except (ValueError, TypeError) as e:
             return jsonify({"error": f"Erro ao atualizar dispositivo: {e}"}), 400 # Retorna erro se os dados forem inválidos

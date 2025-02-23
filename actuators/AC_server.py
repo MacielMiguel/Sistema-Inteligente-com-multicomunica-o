@@ -33,6 +33,18 @@ class ACService(AC_service_pb2_grpc.AirConditionerServiceServicer):
             command = {"action": "set_power", "power": request.power}
             producer.send(COMMAND_TOPIC, command)
             print(f"[AC Server] Sent command: {command}")
+        if request.mode is not None:
+            command = {"action": "set_mode", "mode": request.mode}
+            producer.send(COMMAND_TOPIC, command)
+            print(f"[AC Server] Sent command: {command}")
+        if request.fan_speed is not None:
+            command = {"action": "set_fan_speed", "fan_speed": request.fan_speed}
+            producer.send(COMMAND_TOPIC, command)
+            print(f"[AC Server] Sent command: {command}")
+        if request.swing is not None:
+            command = {"action": "set_swing", "swing": request.swing}
+            producer.send(COMMAND_TOPIC, command)
+            print(f"[AC Server] Sent command: {command}")
 
         return AC_service_pb2.Response(message="✅ Controle atualizado com sucesso!")
 

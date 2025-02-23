@@ -77,12 +77,30 @@ def edit_device():
             # Cria labels e campos de entrada para cada informação do dispositivo
             labels = {}
             entries = {}
+            row = 0
             for key, value in device_info.items():
                 label = ttk.Label(edit_window, text=f"{key.capitalize()}:")
                 label.grid(row=len(labels), column=0, padx=5, pady=5, sticky=tk.W)
-                entry = ttk.Entry(edit_window)
-                entry.insert(0, value)
-                entry.grid(row=len(labels), column=1, padx=5, pady=5)
+
+                if key == "type":  # Exibe o tipo como um label (não editável)
+                    entry = ttk.Label(edit_window, text=value)
+                elif key == "status":  # Cria um menu dropdown para o status
+                    continue
+                elif key == "temperature":  # Cria um campo de entrada para a temperatura
+                    entry = ttk.Entry(edit_window)
+                    entry.insert(0, value)
+                elif key == "mode":  # Cria um menu dropdown para o modo
+                    entry = ttk.Combobox(edit_window, values=["COOL", "HEAT", "FAN", "DRY", "AUTO"])
+                    entry.set(value)
+                elif key == "fan_speed":  # Cria um menu dropdown para a velocidade do ventilador
+                    entry = ttk.Combobox(edit_window, values=["LOW", "MEDIUM", "HIGH", "AUTOMATIC"])
+                    entry.set(value)
+                elif key == "swing":  # Cria um checkbox para o swing
+                    entry = ttk.Checkbutton(edit_window)
+                    entry.state(["selected"] if value else [])  # Define o estado inicial
+                
+                entry.grid(row=row, column=1, padx=5, pady=5)
+                row += 1
                 labels[key] = label
                 entries[key] = entry
 
@@ -90,8 +108,19 @@ def edit_device():
             def save_changes():
                 new_info = {}
                 for key, entry in entries.items():
-                    new_info[key] = entry.get()
+                    if key == "type":
+                        new_info[key] = entry.cget("text")   
+                    elif key == "swing":
+                        new_info[key] = entry.state() == "selected"
+                    elif key == "temperature":
+                        temperature_str = entry.get()
+                    else:
+                        new_info[key] = entry.get()
                 try:
+                    if new_info["type"] == "AC":
+                        new_info["temperature"] = int(float(temperature_str))
+                        new_info["swing"] = "True" if new_info["swing"] else "False"
+
                     response = requests.put(f"{API_URL}/devices/{device}", json=new_info)
                     response.raise_for_status()
                     messagebox.showinfo("Sucesso", response.json().get("message", "Dispositivo atualizado"))
