@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from actuators import lamp_service_pb2 as actuators_dot_lamp__service__pb2
+from actuators import lamp_service_pb2 as lamp__service__pb2
 
 GRPC_GENERATED_VERSION = '1.70.0'
 GRPC_VERSION = grpc.__version__
@@ -18,7 +18,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + f' but the generated code in actuators/lamp_service_pb2_grpc.py depends on'
+        + f' but the generated code in lamp_service_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
@@ -36,13 +36,13 @@ class LampServiceStub(object):
         """
         self.LigarLampada = channel.unary_unary(
                 '/LampService/LigarLampada',
-                request_serializer=actuators_dot_lamp__service__pb2.Empty.SerializeToString,
-                response_deserializer=actuators_dot_lamp__service__pb2.Empty.FromString,
+                request_serializer=lamp__service__pb2.LigarLampadaRequest.SerializeToString,
+                response_deserializer=lamp__service__pb2.Empty.FromString,
                 _registered_method=True)
         self.DesligarLampada = channel.unary_unary(
                 '/LampService/DesligarLampada',
-                request_serializer=actuators_dot_lamp__service__pb2.Empty.SerializeToString,
-                response_deserializer=actuators_dot_lamp__service__pb2.Empty.FromString,
+                request_serializer=lamp__service__pb2.LigarLampadaRequest.SerializeToString,
+                response_deserializer=lamp__service__pb2.Empty.FromString,
                 _registered_method=True)
 
 
@@ -66,13 +66,13 @@ def add_LampServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'LigarLampada': grpc.unary_unary_rpc_method_handler(
                     servicer.LigarLampada,
-                    request_deserializer=actuators_dot_lamp__service__pb2.Empty.FromString,
-                    response_serializer=actuators_dot_lamp__service__pb2.Empty.SerializeToString,
+                    request_deserializer=lamp__service__pb2.LigarLampadaRequest.FromString,
+                    response_serializer=lamp__service__pb2.Empty.SerializeToString,
             ),
             'DesligarLampada': grpc.unary_unary_rpc_method_handler(
                     servicer.DesligarLampada,
-                    request_deserializer=actuators_dot_lamp__service__pb2.Empty.FromString,
-                    response_serializer=actuators_dot_lamp__service__pb2.Empty.SerializeToString,
+                    request_deserializer=lamp__service__pb2.LigarLampadaRequest.FromString,
+                    response_serializer=lamp__service__pb2.Empty.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -100,8 +100,8 @@ class LampService(object):
             request,
             target,
             '/LampService/LigarLampada',
-            actuators_dot_lamp__service__pb2.Empty.SerializeToString,
-            actuators_dot_lamp__service__pb2.Empty.FromString,
+            lamp__service__pb2.LigarLampadaRequest.SerializeToString,
+            lamp__service__pb2.Empty.FromString,
             options,
             channel_credentials,
             insecure,
@@ -127,8 +127,8 @@ class LampService(object):
             request,
             target,
             '/LampService/DesligarLampada',
-            actuators_dot_lamp__service__pb2.Empty.SerializeToString,
-            actuators_dot_lamp__service__pb2.Empty.FromString,
+            lamp__service__pb2.LigarLampadaRequest.SerializeToString,
+            lamp__service__pb2.Empty.FromString,
             options,
             channel_credentials,
             insecure,
