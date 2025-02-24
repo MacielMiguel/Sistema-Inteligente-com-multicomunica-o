@@ -62,9 +62,9 @@ def toggle_device(device):
             if device_data["type"] == "luminosity":
                 lamp_client = grpc.LampClient()
                 if device_data["status"] == "off":
-                    lamp_client.ligar_lampada()
+                    lamp_client.ligar_lampada(device_id=device)
                 else:
-                    lamp_client.desligar_lampada()
+                    lamp_client.desligar_lampada(device_id=device)
             elif device_data["type"] == "AC":
                 ac_client = grpc.ACClient()
                 # Mantém informações do dispositivo
@@ -91,13 +91,14 @@ def delete_device(device):
         if device_data:
             if device_data["type"] == "luminosity":
                 lamp_client = grpc.LampClient()
-                lamp_client.desligar_lampada()
+                lamp_client.desligar_lampada(device_id=device)
             elif device_data["type"] == "AC":
                 ac_client = grpc.ACClient()
-                ac_client.set_control(device_id=device, power=False, temperature=int(device_data.get("temperature")), mode=device_data.get("mode"), fan_speed=device_data.get("fan_speed"), swing=device_data.get("swing") == "True")
-            r.hdel("devices", device)
-            return jsonify({"message": f"Dispositivo {device} deletado com sucesso"})
-        return jsonify({"error": "Dispositivo não encontrado"}), 404
+                if "temperature" in device_data:
+                    ac_client.set_control(device_id=device, power=False, temperature=int(device_data.get("temperature")), mode=device_data.get("mode"), fan_speed=device_data.get("fan_speed"), swing=device_data.get("swing") == "True")
+        r.hdel("devices", device)
+        return jsonify({"message": f"Dispositivo {device} deletado com sucesso"})
+        # return jsonify({"error": "Dispositivo não encontrado"}), 404
     except Exception as e:
         print(f"Erro ao deletar dispositivo {device}: {e}")
         return jsonify({"error": "Erro ao deletar dispositivo"}), 500

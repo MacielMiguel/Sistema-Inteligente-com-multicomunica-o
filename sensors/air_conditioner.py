@@ -8,8 +8,8 @@ import socket, uuid
 
 # Informações multicast
 MULTICAST_GROUP = '224.1.1.1'
-MULTICAST_PORT_RECEIVE = 5001  # Porta para receber mensagens de resposta
-MULTICAST_PORT_SEND = 5000    # Porta para enviar mensagens de descoberta
+MULTICAST_PORT_RECEIVE = 4991  # Porta para receber mensagens de resposta
+MULTICAST_PORT_SEND = 4990    # Porta para enviar mensagens de descoberta
 
 sensor_id = str(uuid.uuid4())
 
@@ -41,21 +41,28 @@ def send_discovery_message():
         "sensor_name": "AC_inicial"
     }
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
     sock.sendto(json.dumps(message_multicast).encode('utf-8'), (MULTICAST_GROUP, MULTICAST_PORT_SEND))
     print("Mensagem de descoberta enviada")
     sock.close()
 
 def receive_response():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind(('', MULTICAST_PORT_RECEIVE))  # Ouvir na porta multicast
+    mreq = socket.inet_aton(MULTICAST_GROUP) + socket.inet_aton('0.0.0.0')
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    sock.settimeout(5)
     try:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('', MULTICAST_PORT_RECEIVE))  # Ouvir na porta multicast
         data, addr = sock.recvfrom(1024)
         response = json.loads(data.decode('utf-8'))
-        print("Ouvindo na porta 5001")
+        print("Ouvindo na porta 4991")
+        return response
+    except socket.timeout:
+        print("Timeout aguardando resposta multicast")
+        return None
     finally:
         sock.close()
-    return response
 
 # Loop multicast
 while True:
@@ -70,16 +77,36 @@ while True:
         break
     time.sleep(2)
     
-consumer =  KafkaConsumer(COMMAND_TOPIC, bootstrap_servers=BROKER_URL,
+consumer =  KafkaConsumer(COMMAND_TOPIC, bootstrap_servers=[BROKER_URL],
                          value_deserializer=lambda x: json.loads(x.decode('utf-8')))
-producer = KafkaProducer(TOPIC, bootstrap_servers=BROKER_URL,
-                         value_deserializer=lambda x: json.loads(x.decode('utf-8')))
+producer = KafkaProducer(bootstrap_servers=[BROKER_URL],
+                         value_serializer=lambda x: json.dumps(x).encode('utf-8'))
 
 
 '''Tudo da parte de Kafka'''
 def read_temperature():
-    # Simula influência da temperatura desejada (exemplo simples)
-    temp = temperature + random.uniform(-2, 2)  # Variação de +/- 2 graus
+    temp = temperature
+
+    # Efeito do modo de operação
+    if mode == "COOL":
+        temp -= 5  # Exemplo: resfria 5 graus abaixo da temperatura desejada
+    elif mode == "HEAT":
+        temp += 5  # Exemplo: aquece 5 graus acima da temperatura desejada
+
+    # Efeito do swing
+    if swing:
+        temp += random.uniform(-1, 1) 
+
+    # Efeito da velocidade do ventilador
+    if fan_speed == "LOW":
+        temp += random.uniform(-0.5, 0.5)  
+    elif fan_speed == "MEDIUM":
+        temp += random.uniform(-1, 1) 
+    elif fan_speed == "HIGH":
+        temp += random.uniform(-1.5, 1.5) 
+
+    temp += random.uniform(-2, 2)
+
     return int(round(temp, 0))
 
 def receive_commands():
@@ -141,7 +168,7 @@ while True:
     
     # Publicar no broker Kafka
     if power == "on":
-        producer.send(TOPIC, key=message["device_id"].encode("utf-8"), value=json.dumps(message).encode("utf-8"))
+        producer.send(TOPIC, key=message["device_id"].encode("utf-8"), value=message)
         print(f"[AC Sensor] Sent: {message}")
     
     time.sleep(15)  # Publica a cada 15 segundos

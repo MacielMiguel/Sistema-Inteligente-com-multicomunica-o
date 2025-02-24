@@ -5,8 +5,8 @@ import json, socket
 
 # Configurações Multicast
 MULTICAST_GROUP = '224.1.1.1'
-MULTICAST_PORT_RECEIVE = 5000  # Porta para receber mensagens de descoberta
-MULTICAST_PORT_SEND = 5001    # Porta para enviar mensagens de resposta
+MULTICAST_PORT_RECEIVE = 4990  # Porta para receber mensagens de descoberta
+MULTICAST_PORT_SEND = 4991   # Porta para enviar mensagens de resposta
 
 # Configuração do Redis
 redis_host = 'localhost'
@@ -17,14 +17,12 @@ try:
 except redis.exceptions.ConnectionError as e:
     print(f"Erro ao conectar ao Redis: {e}")
 
-# Sufixos para determinação dos nomes dos sensores
-AC_id_suf = 0 
-lamp_id_suf = 0 
-
 # Função para processar mensagens de descoberta por multicast
 def process_discovery_message(message, addr):
     try:
-        data = json.loads(message.value.decode())
+        if isinstance(message, bytes):
+            message = message.decode()
+        data = json.loads(message)
         sensor_id = data.get("sensor_id")
         sensor_name = data.get("sensor_name")
         sensor_type = data.get("sensor_type")
@@ -33,15 +31,19 @@ def process_discovery_message(message, addr):
 
         # Novos nomes e informações
         if sensor_type == "AC":
+            AC_id_suf = 0
+            while (r.hexists("devices", "AC_sensor" + str(AC_id_suf))):
+                AC_id_suf += 1
             sensor_name = "AC_sensor" + str(AC_id_suf)
             topic = "temperature_data"
             command_topic = "temperature_commands"
-            AC_id_suf += 1
         elif sensor_type == "luminosity":
+            lamp_id_suf = 0
+            while (r.hexists("devices", "luminosity_" + str(lamp_id_suf))):
+                lamp_id_suf += 1
             sensor_name = "luminosity_" + str(lamp_id_suf)
             topic = "luminosity_data"
             command_topic = "luminosity_commands"
-            lamp_id_suf += 1
             
         device_data = {"name": sensor_name, "type": sensor_type}
         # Mensagem de resposta
@@ -55,6 +57,7 @@ def process_discovery_message(message, addr):
 
         # Envia mensagem de resposta por multicast
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
         sock.sendto(json.dumps(response).encode('utf-8'), (addr[0], MULTICAST_PORT_SEND))
         print("Mensagem de resposta multicast enviada")
         sock.close()
@@ -71,7 +74,10 @@ def process_discovery_message(message, addr):
 # Função para consumir mensagens de descoberta por multicast
 def consume_discovery_messages():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind(('', MULTICAST_PORT_RECEIVE))  # Bind na porta multicast
+    mreq = socket.inet_aton(MULTICAST_GROUP) + socket.inet_aton('0.0.0.0')
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
     print("Bind feito ao grupo multicast. Escutando...")
 
     while True:
@@ -123,7 +129,6 @@ def start_broker_listener():
 
     topics = {
         "temperature_data": ("temperature_consumer_group", consume_messages),
-        "gates_data": ("gates_consumer_group", consume_messages),
         "luminosity_data": ("luminosity_consumer_group", consume_messages)
     }
 

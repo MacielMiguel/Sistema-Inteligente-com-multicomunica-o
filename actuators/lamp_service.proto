@@ -1,8 +1,12 @@
 syntax = "proto3";
 
-service LampService {
-    rpc LigarLampada (Empty) returns (Empty);
-    rpc DesligarLampada (Empty) returns (Empty);
+message LigarLampadaRequest {
+    string device_id = 1;
 }
 
 message Empty {}
+
+service LampService {
+    rpc LigarLampada (LigarLampadaRequest) returns (Empty);
+    rpc DesligarLampada (LigarLampadaRequest) returns (Empty);
+}

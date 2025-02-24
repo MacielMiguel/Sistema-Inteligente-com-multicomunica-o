@@ -10,15 +10,27 @@ class LampClient:
         self.channel = grpc.insecure_channel(f"{host}:{port}")
         self.stub = lamp_service_pb2_grpc.LampServiceStub(self.channel)
 
-    def ligar_lampada(self):
-        request = lamp_service_pb2.Empty()
+    def ligar_lampada(self, device_id):
+        request = lamp_service_pb2.LigarLampadaRequest(device_id=device_id)
         response = self.stub.LigarLampada(request)
         return response
 
-    def desligar_lampada(self):
-        request = lamp_service_pb2.Empty()
+    def desligar_lampada(self, device_id):
+        request = lamp_service_pb2.LigarLampadaRequest(device_id=device_id)
         response = self.stub.DesligarLampada(request)
         return response
+
+    '''def MudarCorLampada(self, device_id="luminosity", status="on", color='WHITE'):
+        self.estado = "ligada"
+        control = {
+            "action": "mudar_cor",
+            "device_id": device_id,
+            "type": "luminosity",
+            "status": status,
+            "color": color
+        }
+        response = self.stub.MudarCorLampada(control)
+        return response'''
 
 class ACClient:
     def __init__(self, host="localhost", port=50052):
