@@ -66,15 +66,13 @@ def edit_device():
     device = device_listbox.get(device_listbox.curselection())
     if device:
         try:
-            # Abre uma nova janela para editar as informações do dispositivo
+            # abre uma nova janela para editar as informações do dispositivo
             edit_window = tk.Toplevel(root)
             edit_window.title(f"Editar {device}")
 
-            # Obtém as informações atuais do dispositivo
             response = requests.get(f"{API_URL}/devices/{device}")
             device_info = response.json().get(device)
 
-            # Cria labels e campos de entrada para cada informação do dispositivo
             labels = {}
             entries = {}
             row = 0
@@ -82,29 +80,28 @@ def edit_device():
                 label = ttk.Label(edit_window, text=f"{key.capitalize()}:")
                 label.grid(row=len(labels), column=0, padx=5, pady=5, sticky=tk.W)
 
-                if key == "type":  # Exibe o tipo como um label (não editável)
+                if key == "type":  
                     entry = ttk.Label(edit_window, text=value)
-                elif key == "status":  # Cria um menu dropdown para o status
+                elif key == "status": 
                     continue
-                elif key == "temperature":  # Cria um campo de entrada para a temperatura
+                elif key == "temperature":
                     entry = ttk.Entry(edit_window)
                     entry.insert(0, value)
-                elif key == "mode":  # Cria um menu dropdown para o modo
+                elif key == "mode": 
                     entry = ttk.Combobox(edit_window, values=["COOL", "HEAT", "FAN", "DRY", "AUTO"])
                     entry.set(value)
-                elif key == "fan_speed":  # Cria um menu dropdown para a velocidade do ventilador
+                elif key == "fan_speed": 
                     entry = ttk.Combobox(edit_window, values=["LOW", "MEDIUM", "HIGH", "AUTOMATIC"])
                     entry.set(value)
-                elif key == "swing":  # Cria um checkbox para o swing
+                elif key == "swing": 
                     entry = ttk.Checkbutton(edit_window)
-                    entry.state(["selected"] if value else [])  # Define o estado inicial
+                    entry.state(["selected"] if value else [])  
                 
                 entry.grid(row=row, column=1, padx=5, pady=5)
                 row += 1
                 labels[key] = label
                 entries[key] = entry
 
-            # Função para salvar as alterações
             def save_changes():
                 new_info = {}
                 for key, entry in entries.items():
@@ -129,7 +126,6 @@ def edit_device():
                 except requests.exceptions.RequestException as e:
                     messagebox.showerror("Erro", f"Erro ao atualizar dispositivo: {e}")
 
-            # Botão para salvar as alterações
             save_button = ttk.Button(edit_window, text="Salvar", command=save_changes)
             save_button.grid(row=len(labels), column=0, columnspan=2, pady=(10, 5))
 
@@ -139,7 +135,6 @@ def edit_device():
         messagebox.showwarning("Atenção", "Selecione um dispositivo para editar.")
 
 
-# Função para lidar com operações sem seleção
 def handle_operation(operation):
     def inner_function():
         if not device_listbox.curselection():
@@ -151,11 +146,9 @@ def handle_operation(operation):
 root = tk.Tk()
 root.title("Controle de Dispositivos")
 
-# Tema
 style = ttk.Style()
 style.theme_use("clam")
 
-# Frame para a lista de dispositivos
 device_frame = ttk.LabelFrame(root, text="Dispositivos")
 device_frame.pack(padx=10, pady=10)
 
@@ -165,11 +158,9 @@ device_listbox.pack(padx=5, pady=5)
 list_button = ttk.Button(device_frame, text="Listar Dispositivos", command=list_devices)
 list_button.pack(pady=(0, 5))
 
-# Frame para os botões de ação
 action_frame = ttk.LabelFrame(root, text="Ações")
 action_frame.pack(padx=10, pady=(0, 10))
 
-# Usando a função handle_operation para criar os botões
 toggle_button = ttk.Button(action_frame, text="Ligar/Desligar", command=handle_operation(toggle_device))
 toggle_button.pack(side=tk.LEFT, padx=5)
 
@@ -182,7 +173,6 @@ status_button.pack(side=tk.LEFT, padx=5)
 edit_button = ttk.Button(action_frame, text="Editar", command=handle_operation(edit_device))
 edit_button.pack(side=tk.LEFT, padx=5)
 
-# Frame para exibir o estado do dispositivo
 status_frame = ttk.LabelFrame(root, text="Estado do Dispositivo")
 status_frame.pack(padx=10, pady=(0, 10))
 
@@ -192,7 +182,5 @@ status_label.pack()
 temperature_label = ttk.Label(status_frame, text="Temperatura: -")
 temperature_label.pack()
 temperature_label.pack_forget()
-
-# Adicione outros labels para exibir outras informações do dispositivo
 
 root.mainloop()

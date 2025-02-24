@@ -2,9 +2,8 @@ syntax = "proto3";
 
 package airconditioner;
 
-import "google/protobuf/empty.proto"; // Adicionando suporte a Empty
+import "google/protobuf/empty.proto";
 
-// Mensagem para controle do Ar Condicionado
 message AirConditionerControl {
   string device_id = 1;
   bool power = 2;
@@ -35,5 +34,5 @@ message Response {
 
 service AirConditionerService {
   rpc SetControl (AirConditionerControl) returns (Response);
-  rpc GetStatus (google.protobuf.Empty) returns (AirConditionerControl); // Corrigido
+  rpc GetStatus (google.protobuf.Empty) returns (AirConditionerControl);
 }

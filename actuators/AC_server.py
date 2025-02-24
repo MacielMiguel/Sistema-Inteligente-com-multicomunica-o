@@ -6,13 +6,11 @@ import AC_service_pb2
 import AC_service_pb2_grpc
 import json
 
-# Configuração do tópico de comandos
 COMMAND_TOPIC = "temperature_commands"
 BROKER_URL = "localhost:9092"
 producer = KafkaProducer(bootstrap_servers=BROKER_URL,
                          value_serializer=lambda x: json.dumps(x).encode('utf-8'))
 
-# Implementação do serviço
 class ACService(AC_service_pb2_grpc.AirConditionerServiceServicer):
     def __init__(self):
         self.status = AC_service_pb2.AirConditionerControl(
@@ -21,7 +19,6 @@ class ACService(AC_service_pb2_grpc.AirConditionerServiceServicer):
         )
 
     def SetControl(self, request, context):
-        # Atualiza o status do ar-condicionado
         self.status = request
 
         command = {
@@ -63,7 +60,6 @@ class ACService(AC_service_pb2_grpc.AirConditionerServiceServicer):
     def GetStatus(self, request, context):
         return self.status
 
-# Função para iniciar o servidor
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     AC_service_pb2_grpc.add_AirConditionerServiceServicer_to_server(ACService(), server)
@@ -72,7 +68,7 @@ def serve():
     print("Servidor gRPC rodando na porta 50052...")
     try:
         while True:
-            time.sleep(86400)  # Mantém o servidor rodando
+            time.sleep(86400)  # mantém o servidor rodando
     except KeyboardInterrupt:
         server.stop(0)
 

@@ -6,10 +6,9 @@ import uuid, socket
 from kafka import KafkaConsumer, KafkaProducer
 import threading
 
-# Informações multicast
 MULTICAST_GROUP = '224.1.1.1'
-MULTICAST_PORT_RECEIVE = 4991  # Porta para receber mensagens de resposta
-MULTICAST_PORT_SEND = 4990    # Porta para enviar mensagens de descoberta
+MULTICAST_PORT_RECEIVE = 4991
+MULTICAST_PORT_SEND = 4990
 
 sensor_id = str(uuid.uuid4())
 status = "on"
@@ -31,7 +30,7 @@ def send_discovery_message():
 def receive_response():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind(('', MULTICAST_PORT_RECEIVE))  # Ouvir na porta multicast
+    sock.bind(('', MULTICAST_PORT_RECEIVE))
     mreq = socket.inet_aton(MULTICAST_GROUP) + socket.inet_aton('0.0.0.0')
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
     sock.settimeout(5)
@@ -46,7 +45,6 @@ def receive_response():
     finally:
         sock.close()
 
-# Loop multicast
 while True:
     send_discovery_message()
     response = receive_response()
@@ -65,7 +63,7 @@ producer = KafkaProducer(bootstrap_servers=[BROKER_URL],
                          value_serializer=lambda x: json.dumps(x).encode('utf-8'))
 
 def read_luminosity():
-    return round(random.uniform(100, 1000), 2)  # Luminosidade em lux
+    return round(random.uniform(100, 1000), 2)  # luminosidade em lux
 
 def receive_commands():
     global device_id, status
@@ -92,9 +90,8 @@ while True:
         "status": status
         }
     
-    # Publicar no broker
     if status == "on":
         producer.send(TOPIC, key=message["device_id"].encode("utf-8"), value=message)
         print(f"[Luminosity Sensor] Sent: {message}")
     
-    time.sleep(15)  # Publica a cada 15 segundos
+    time.sleep(15)

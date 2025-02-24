@@ -87,17 +87,14 @@ producer = KafkaProducer(bootstrap_servers=[BROKER_URL],
 def read_temperature():
     temp = temperature
 
-    # Efeito do modo de operação
     if mode == "COOL":
-        temp -= 5  # Exemplo: resfria 5 graus abaixo da temperatura desejada
+        temp -= 5 
     elif mode == "HEAT":
-        temp += 5  # Exemplo: aquece 5 graus acima da temperatura desejada
+        temp += 5 
 
-    # Efeito do swing
     if swing:
         temp += random.uniform(-1, 1) 
 
-    # Efeito da velocidade do ventilador
     if fan_speed == "LOW":
         temp += random.uniform(-0.5, 0.5)  
     elif fan_speed == "MEDIUM":
@@ -114,10 +111,8 @@ def receive_commands():
     for message in consumer:
         command = message.value
         if command.get("device_id") == device_id:
-            # Determina a temperatura
             temperature = command.get("temperature")
             
-            # Determina o power
             power = command.get("power")
             if power:
                 power = "on"
@@ -126,7 +121,6 @@ def receive_commands():
                 power = "off"
                 print("Power Off")
             
-            # Determina o mode
             mode = command.get("mode")
             match mode:
                 case 0: mode = "COOL"
@@ -135,7 +129,6 @@ def receive_commands():
                 case 3: mode = "DRY"
                 case 4: mode = "AUTO"
 
-            # Determina a fan_speed
             fan_speed = command.get("fan_speed")
             match fan_speed:
                 case 0: fan_speed = "LOW"
@@ -143,7 +136,6 @@ def receive_commands():
                 case 2: fan_speed = "HIGH"
                 case 3: fan_speed = "AUTOMATIC"
 
-            # Determina o swing
             swing = command.get("swing")
             match swing:
                 case True: swing = "True"
@@ -153,7 +145,6 @@ command_thread = threading.Thread(target=receive_commands)
 command_thread.daemon = True
 command_thread.start()
 
-# Loop após recebimento de informações
 while True:
     temp = read_temperature()
     message = {
@@ -166,9 +157,8 @@ while True:
         "swing": swing
         }
     
-    # Publicar no broker Kafka
     if power == "on":
         producer.send(TOPIC, key=message["device_id"].encode("utf-8"), value=message)
         print(f"[AC Sensor] Sent: {message}")
     
-    time.sleep(15)  # Publica a cada 15 segundos
+    time.sleep(15)

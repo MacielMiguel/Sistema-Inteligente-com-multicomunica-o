@@ -50,6 +50,6 @@ class ACClient:
         return response
 
     def get_status(self):
-        request = Empty()  # Criando uma requisição vazia
-        ac_status = self.stub.GetStatus(request)  # Chamando o método GetStatus
+        request = Empty() 
+        ac_status = self.stub.GetStatus(request) 
         print(ac_status)

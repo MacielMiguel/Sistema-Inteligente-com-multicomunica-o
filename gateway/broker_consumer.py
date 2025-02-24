@@ -3,12 +3,10 @@ import redis
 import threading
 import json, socket
 
-# Configurações Multicast
 MULTICAST_GROUP = '224.1.1.1'
 MULTICAST_PORT_RECEIVE = 4990  # Porta para receber mensagens de descoberta
 MULTICAST_PORT_SEND = 4991   # Porta para enviar mensagens de resposta
 
-# Configuração do Redis
 redis_host = 'localhost'
 redis_port = 6379
 redis_db = 0
@@ -17,7 +15,6 @@ try:
 except redis.exceptions.ConnectionError as e:
     print(f"Erro ao conectar ao Redis: {e}")
 
-# Função para processar mensagens de descoberta por multicast
 def process_discovery_message(message, addr):
     try:
         if isinstance(message, bytes):
@@ -29,7 +26,6 @@ def process_discovery_message(message, addr):
         topic = None
         command_topic = None
 
-        # Novos nomes e informações
         if sensor_type == "AC":
             AC_id_suf = 0
             while (r.hexists("devices", "AC_sensor" + str(AC_id_suf))):
@@ -46,7 +42,7 @@ def process_discovery_message(message, addr):
             command_topic = "luminosity_commands"
             
         device_data = {"name": sensor_name, "type": sensor_type}
-        # Mensagem de resposta
+
         response = {
             "sensor_id": sensor_id,
             "topic": topic,
@@ -55,7 +51,6 @@ def process_discovery_message(message, addr):
             "command_topic": command_topic
         }
 
-        # Envia mensagem de resposta por multicast
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
         sock.sendto(json.dumps(response).encode('utf-8'), (addr[0], MULTICAST_PORT_SEND))
@@ -85,7 +80,6 @@ def consume_discovery_messages():
         # message = json.loads(data.decode('utf-8'))
         process_discovery_message(data, addr)
 
-# Função para processar mensagens e criar os dispositivos no Redis
 def process_message(message, topic):
     try:
         print(f"Mensagem recebida do tópico {topic}: {message.value.decode()}")
@@ -107,7 +101,6 @@ def process_message(message, topic):
     except Exception as e:
         print(f"Erro ao processar mensagem do tópico {topic}: {e}")
 
-# Função para consumir mensagens
 def consume_messages(topic, group_id):
     try:
         consumer = KafkaConsumer(

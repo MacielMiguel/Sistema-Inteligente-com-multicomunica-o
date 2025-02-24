@@ -4,7 +4,6 @@ import lamp_service_pb2_grpc as grpc_service
 from lamp_service_pb2 import Empty
 from kafka import KafkaProducer
 
-# Configuração do tópico de comandos
 COMMAND_TOPIC = "luminosity_commands"
 BROKER_URL = "localhost:9092"
 producer = KafkaProducer(bootstrap_servers=BROKER_URL,
